@@ -1,0 +1,44 @@
+name: Build Geode Mod
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - "**"
+
+jobs:
+  # The search engine and the .slc codecs do not depend on Geometry Dash or
+  # Geode at all, so they are compiled and unit tested on every push with a
+  # plain compiler. This is what catches format and search regressions.
+  core-tests:
+    name: Core unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build and run the core tests
+        run: bash tests/run.sh
+
+  # The mod itself needs the Geode SDK and the 2.208 bindings. Only Windows is
+  # built: the practice mode checkpoint functions the search rewinds with are
+  # only bound for Windows in the 2.208 bindings.
+  build:
+    name: Windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build the mod
+        uses: geode-sdk/build-geode-mod@main
+        with:
+          target: Win64
+          bindings: geode-sdk/bindings
+          sdk: given
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: Build Output
+          path: ${{ github.workspace }}/build/**/*.geode
