@@ -146,18 +146,36 @@ cmake -B build -G Ninja
 cmake --build build --config Release
 ```
 
-The `.geode` ends up in `build/`. Install it by dropping it into your
-`geode/mods` folder, or with `geode --install`.
+The `.geode` ends up in `build/` (`build/miso517.pathfinder.geode`). Install it
+by dropping it into your `geode/mods` folder, or with `geode --install`.
 
-The workflow in `ci/build.yml` runs the core tests on Linux and builds the mod
-on Windows, uploading the `.geode` as an artifact. It lives outside
-`.github/workflows/` in the repository because the automation token that pushes
-this branch is not allowed to create workflow files; enable it with:
+On Windows the same thing works from a developer command prompt, provided the
+[Geode installer](https://geode-sdk.org) has set up the SDK:
+
+```bat
+set GEODE_SDK=%USERPROFILE%\.geode
+cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build --config Release
+```
+
+### Building on GitHub Actions
+
+The workflow in `ci/build.yml` runs the core tests on Linux, builds the mod on
+`windows-latest` with `geode-sdk/build-geode-mod`, uploads the `.geode` as the
+`Pathfinder-Win64` artifact, and publishes it to the rolling `ci-latest`
+release (tag pushes release under their tag instead).
+
+It lives outside `.github/workflows/` because the automation token that pushes
+this branch has no `workflows` permission and GitHub refuses to let it create
+workflow files. Either grant that permission, or copy the file in yourself once:
 
 ```bash
 mkdir -p .github/workflows && cp ci/build.yml .github/workflows/build.yml
 git add .github && git commit -m "CI" && git push
 ```
+
+After that every push builds it, and Actions → *Build Geode Mod* → any run →
+**Artifacts** has the `.geode`.
 
 ## Testing
 
