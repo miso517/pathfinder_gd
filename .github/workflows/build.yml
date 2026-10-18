@@ -1,0 +1,80 @@
+name: Build Geode Mod
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - "**"
+
+permissions:
+  contents: write
+
+jobs:
+  # The search engine and the .slc codecs do not depend on Geometry Dash or
+  # Geode at all, so they are compiled and unit tested on every push with a
+  # plain compiler. This is what catches format and search regressions.
+  core-tests:
+    name: Core unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build and run the core tests
+        run: bash tests/run.sh
+
+  # The mod itself needs the Geode SDK and the 2.208 bindings. Only Windows is
+  # built: the practice mode checkpoint functions the search rewinds with are
+  # only bound for Windows in the 2.208 bindings.
+  build:
+    name: Windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build the mod
+        uses: geode-sdk/build-geode-mod@main
+        with:
+          target: Win64
+          bindings: geode-sdk/bindings
+          sdk: given
+
+      # The action copies every built .geode into $GITHUB_WORKSPACE/output.
+      # (It only uploads an artifact itself when `combine: true`, which is for
+      # merging multi platform builds, so the upload happens here.)
+      - name: Show what was built
+        shell: bash
+        run: ls -la "$GITHUB_WORKSPACE"/output/
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: Pathfinder-Win64
+          path: ${{ github.workspace }}/output/*.geode
+          if-no-files-found: error
+
+      # Publish the build somewhere with a stable link. Tag builds release
+      # under their tag, everything else lands in the rolling `ci-latest`
+      # release, so the newest artifact is always at the same URL.
+      - name: Publish release
+        if: github.event_name != 'pull_request'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          cd "$GITHUB_WORKSPACE/output"
+          case "$GITHUB_REF" in
+            refs/tags/v*) TAG="${GITHUB_REF#refs/tags/}"; TITLE="$TAG" ;;
+            *)            TAG="ci-latest"; TITLE="Latest CI build" ;;
+          esac
+          gh release create "$TAG" \
+            --title "$TITLE" \
+            --notes "Built from ${GITHUB_SHA} on ${GITHUB_REF_NAME} by workflow run ${GITHUB_RUN_ID}." \
+            --latest=false \
+            --target "$GITHUB_SHA" || true
+          for f in *.geode; do
+            gh release upload "$TAG" "$f" --clobber
+          done
+          echo "Download: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/tag/$TAG"
