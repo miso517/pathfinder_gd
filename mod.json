@@ -1,0 +1,245 @@
+{
+	"geode": "v5.11.2",
+	"gd": {
+		"win": "2.208"
+	},
+	"id": "miso517.pathfinder",
+	"name": "Pathfinder",
+	"version": "1.0.0",
+	"developer": "miso517",
+	"description": "Searches the real game engine for a survivable path through a level, plays it back to verify it, and saves it as a Silicate .slc macro.",
+	"tags": [
+		"gameplay",
+		"utility",
+		"developer"
+	],
+	"links": {
+		"source": "https://github.com/miso517/pathfinder_gd"
+	},
+	"issues": {
+		"info": "Report bugs or request support on the GitHub issue tracker",
+		"url": "https://github.com/miso517/pathfinder_gd/issues"
+	},
+	"settings": {
+		"search-title": {
+			"type": "title",
+			"name": "Search"
+		},
+		"tps": {
+			"name": "Physics tick rate",
+			"description": "How many physics ticks per second the search (and the exported macro) uses. 240 is Silicate's default and what most macro tools expect. Higher values find tighter paths but take much longer.",
+			"type": "float",
+			"default": 240,
+			"min": 30,
+			"max": 1000,
+			"control": {
+				"arrows": true,
+				"arrow-step": 10,
+				"big-arrows": false,
+				"slider": true,
+				"slider-step": 10,
+				"input": true
+			}
+		},
+		"horizon": {
+			"name": "Search horizon",
+			"description": "How many frames of input the search plans and commits at once. A larger horizon sees traps further ahead, but the number of candidates it has to try grows with it.",
+			"type": "int",
+			"default": 16,
+			"min": 2,
+			"max": 256,
+			"control": {
+				"arrows": true,
+				"arrow-step": 1,
+				"big-arrows": true,
+				"big-arrow-step": 8,
+				"slider": true,
+				"slider-step": 1,
+				"input": true
+			}
+		},
+		"candidates": {
+			"name": "Candidates per window",
+			"description": "How many different button patterns are tried for each window. More candidates means a better path and a slower search.",
+			"type": "int",
+			"default": 24,
+			"min": 2,
+			"max": 512,
+			"control": {
+				"arrows": true,
+				"arrow-step": 1,
+				"big-arrows": true,
+				"big-arrow-step": 8,
+				"slider": true,
+				"slider-step": 1,
+				"input": true
+			}
+		},
+		"hold-frames": {
+			"name": "Default hold length",
+			"description": "How many frames a jump press is held before being released, when the search tries its default candidate. Other lengths are always tried as well.",
+			"type": "int",
+			"default": 3,
+			"min": 1,
+			"max": 64,
+			"control": {
+				"arrows": true,
+				"arrow-step": 1,
+				"slider": true,
+				"slider-step": 1,
+				"input": true
+			}
+		},
+		"death-penalty": {
+			"name": "Death penalty",
+			"description": "How harshly a candidate that dies is scored, as a fraction of the progress it made. 0 means a dead candidate is always worthless, 1 means it competes on progress alone.",
+			"type": "float",
+			"default": 0.25,
+			"min": 0,
+			"max": 1,
+			"control": {
+				"arrows": true,
+				"arrow-step": 0.05,
+				"slider": true,
+				"slider-step": 0.05,
+				"input": true
+			}
+		},
+		"fast-snapshots": {
+			"name": "Fast snapshots",
+			"description": "Rewind only the icons between candidates instead of the whole level. Automatically disabled for levels that contain state the player can change (breakable blocks, toggles, pickups), where it would be wrong.",
+			"type": "bool",
+			"default": true
+		},
+		"speed-title": {
+			"type": "title",
+			"name": "Limits"
+		},
+		"frames-per-tick": {
+			"name": "Frames per rendered frame",
+			"description": "How many physics ticks the search may run per rendered frame. Higher values search faster but make the game feel less responsive while searching.",
+			"type": "int",
+			"default": 800,
+			"min": 8,
+			"max": 200000,
+			"control": {
+				"arrows": true,
+				"arrow-step": 50,
+				"big-arrows": true,
+				"big-arrow-step": 500,
+				"slider": true,
+				"slider-step": 50,
+				"input": true
+			}
+		},
+		"frame-budget": {
+			"name": "Total frame budget",
+			"description": "Give up after this many simulated frames. Whatever was found up to that point is still exported as a partial macro.",
+			"type": "int",
+			"default": 6000000,
+			"min": 10000,
+			"max": 400000000,
+			"control": {
+				"arrows": false,
+				"slider": false,
+				"input": true
+			}
+		},
+		"backtrack-depth": {
+			"name": "Backtrack depth",
+			"description": "How many committed windows are kept so the search can undo them. Deeper backtracking escapes traps where the fatal mistake happens several jumps before the death, at the cost of memory.",
+			"type": "int",
+			"default": 6,
+			"min": 1,
+			"max": 128,
+			"control": {
+				"arrows": true,
+				"arrow-step": 1,
+				"slider": true,
+				"slider-step": 1,
+				"input": true
+			}
+		},
+		"max-backtracks": {
+			"name": "Maximum backtracks",
+			"description": "Stop after this many backtrack attempts.",
+			"type": "int",
+			"default": 512,
+			"min": 1,
+			"max": 100000,
+			"control": {
+				"arrows": false,
+				"slider": false,
+				"input": true
+			}
+		},
+		"output-title": {
+			"type": "title",
+			"name": "Playback and output"
+		},
+		"export-format": {
+			"name": "Export format",
+			"description": "Which .slc container to write. v3 is the current Silicate format and supports seeds, restarts and tps changes; v2 is the older container for tools that have not updated.",
+			"type": "string",
+			"default": "slc v3",
+			"one-of": [
+				"slc v3",
+				"slc v2"
+			]
+		},
+		"playback-speed": {
+			"name": "Playback speed",
+			"description": "Speed multiplier used when playing a macro back. 1 plays it in real time, 4 verifies it four times faster.",
+			"type": "float",
+			"default": 1,
+			"min": 0.25,
+			"max": 32,
+			"control": {
+				"arrows": true,
+				"arrow-step": 0.25,
+				"big-arrows": true,
+				"big-arrow-step": 1,
+				"slider": true,
+				"slider-step": 0.25,
+				"input": true
+			}
+		},
+		"mute-while-running": {
+			"name": "Mute audio while simulating",
+			"description": "Silence music and effects while the mod is stepping the engine hundreds of times per second. The previous volumes are restored afterwards.",
+			"type": "bool",
+			"default": true
+		},
+		"show-hud": {
+			"name": "Show the in-level HUD",
+			"description": "Show the small status readout and stop button in the top left corner while playing a level.",
+			"type": "bool",
+			"default": true
+		},
+		"keybinds-title": {
+			"type": "title",
+			"name": "Keybinds"
+		},
+		"open-menu": {
+			"name": "Open Pathfinder",
+			"description": "Opens the Pathfinder control panel.",
+			"type": "keybind",
+			"default": "Ctrl+Shift+P",
+			"category": "gameplay"
+		},
+		"find-path": {
+			"name": "Find path / stop",
+			"description": "Starts a search in the current level, or stops the search that is running.",
+			"type": "keybind",
+			"default": "Ctrl+Shift+F",
+			"category": "gameplay"
+		},
+		"stop": {
+			"name": "Stop everything",
+			"description": "Stops any search, playback or recording and hands the level back to you.",
+			"type": "keybind",
+			"default": "Ctrl+Shift+X",
+			"category": "gameplay"
+		}
+	}
+}

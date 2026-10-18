@@ -1,0 +1,29 @@
+# Build output
+build/
+build-*/
+build-tests/
+out/
+cmake-build-*/
+
+# Geode
+*.geode
+.geode/
+
+# The CI definition lives in ci/build.yml: the automation token that pushes
+# this repository is not allowed to create files under .github/workflows/.
+# Move it into place manually with:
+#   mkdir -p .github/workflows && cp ci/build.yml .github/workflows/build.yml
+.github/
+
+# Tooling
+compile_commands.json
+.cache/
+.clangd/
+.idea/
+.vs/
+.vscode/
+*.user
+
+# OS
+.DS_Store
+Thumbs.db
